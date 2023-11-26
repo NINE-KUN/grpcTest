@@ -1,0 +1,134 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.routeguide";
+option java_outer_classname = "RouteGuideProto";
+option objc_class_prefix = "RTG";
+
+package routeguide;
+
+// 定义名为 RouteGuide服务接口
+service RouteGuide {
+  // A simple RPC.
+  //
+  // Obtains the feature at a given position.
+  //
+  // A feature with an empty name is returned if there's no feature at the given
+  // position.
+
+  //简单的RPC 客户端使用存根向服务器发送请求 并等待响应返回
+  rpc GetFeature(Point) returns (Feature) {}
+
+  // A server-to-client streaming RPC.
+  //
+  // Obtains the Features available within the given Rectangle.  Results are
+  // streamed rather than returned at once (e.g. in a response message with a
+  // repeated field), as the rectangle may cover a large area and contain a
+  // huge number of features.
+
+  //响应流式 RPC，其中客户端向服务器发送请求，并且 获取一个流以读回一系列消息。
+  //客户端从 返回流，直到没有更多消息。正如您在 例如，通过将关键字放在响应类型之前来指定响应流式处理方法。stream
+  rpc ListFeatures(Rectangle) returns (stream Feature) {}
+
+  // A client-to-server streaming RPC.
+  //
+  // Accepts a stream of Points on a route being traversed, returning a
+  // RouteSummary when traversal is completed.
+
+  //请求流式处理 RPC，其中客户端写入一系列消息和 再次使用提供的流将它们发送到服务器。
+  //一旦客户端拥有 写完消息，它等待服务器读取所有消息，然后 返回其响应。
+  //您可以通过将关键字放在请求类型之前来指定请求流式处理方法。stream
+  rpc RecordRoute(stream Point) returns (RouteSummary) {}
+
+  // A Bidirectional streaming RPC.
+  //
+  // Accepts a stream of RouteNotes sent while a route is being traversed,
+  // while receiving other RouteNotes (e.g. from other users).
+
+  //双向流式 RPC，其中双方发送一系列消息 使用读写流。
+  //这两个流独立运行，因此客户端 服务器可以按照自己喜欢的任何顺序进行读取和写入：
+  //例如， 服务器可以等待接收所有客户端消息，然后再写入其 响应，
+  //或者它可以交替读取消息然后写入消息，或者 读取和写入的其他组合。
+  //每条消息的顺序 流被保留。您可以通过将关键字放在请求和响应之前来指定此类型的方法。stream
+  rpc RouteChat(stream RouteNote) returns (stream RouteNote) {}
+}
+
+// Points are represented as latitude-longitude pairs in the E7 representation
+// (degrees multiplied by 10**7 and rounded to the nearest integer).
+// Latitudes should be in the range +/- 90 degrees and longitude should be in
+// the range +/- 180 degrees (inclusive).
+
+
+// 请求和响应所需参数和返回参数 还可以定义参数类型
+
+
+//您的文件还包含所有协议缓冲区消息类型定义
+//我们的服务方法中使用的请求和响应类型 - 例如，这里是 消息类型：.protoPoint
+//每个请求和响应 都通过唯一字段编号
+message Point {
+  int32 latitude = 1; //定义参数类型 以及参数唯一编号，用来在二进制格式消息中识别字段
+  int32 longitude = 2;
+}
+
+// A latitude-longitude rectangle, represented as two diagonally opposite
+// points "lo" and "hi".
+message Rectangle {
+  // One corner of the rectangle.
+  Point lo = 1;
+
+  // The other corner of the rectangle.
+  Point hi = 2;
+}
+
+// A feature names something at a given point.
+//
+// If a feature could not be named, the name is empty.
+message Feature {
+  // The name of the feature.
+  string name = 1;
+
+  // The point where the feature is detected.
+  Point location = 2;
+}
+
+// A RouteNote is a message sent while at a given point.
+message RouteNote {
+  // The location from which the message is sent.
+  Point location = 1;
+
+  // The message to be sent.
+  string message = 2;
+}
+
+// A RouteSummary is received in response to a RecordRoute rpc.
+//
+// It contains the number of individual points received, the number of
+// detected features, and the total distance covered as the cumulative sum of
+// the distance between each point.
+message RouteSummary {
+  // The number of points received.
+  int32 point_count = 1;
+
+  // The number of known features passed while traversing the route.
+  int32 feature_count = 2;
+
+  // The distance covered in metres.
+  int32 distance = 3;
+
+  // The duration of the traversal in seconds.
+  int32 elapsed_time = 4;
+}

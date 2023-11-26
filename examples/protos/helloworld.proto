@@ -1,0 +1,48 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// 服务接口
+//
+
+syntax = "proto3"; //首先声名所使用的protocol buffers版本
+
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.helloworld";
+option java_outer_classname = "HelloWorldProto";
+option objc_class_prefix = "HLW";
+
+package helloworld;
+
+// 定义grpc服务接口
+//该服务定义被用来构建grpc应用程序的客户端和服务端
+service Greeter {
+  // 定义方法 以及请求和响应类型·
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+
+  // Sends another greeting
+  rpc SayHelloAgain(HelloRequest) returns (HelloReply) {}
+
+
+  rpc SayHelloStreamReply (HelloRequest) returns (stream HelloReply) {}
+}
+
+// 请求类型 的参数
+message HelloRequest {
+  string name = 1;
+}
+
+// 返回相应类型的 参数
+message HelloReply {
+  string message = 1;
+}
